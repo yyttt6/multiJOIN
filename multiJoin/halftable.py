@@ -1,4 +1,3 @@
-# python版本必须3.7以上
 import numpy as np
 import mmh3
 import heapq
@@ -7,7 +6,6 @@ from copy import deepcopy
 
 TOP = 0
 SIZE = 2000
-
 
 class Matrix:
     def __init__(self, lables: [], positions):
