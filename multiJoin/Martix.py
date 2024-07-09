@@ -4,9 +4,10 @@ import heapq
 import math
 from copy import deepcopy
 
-SIZE = 2000
+SIZE = 20000
 TOP = 10
-
+SEED1 = 101
+SEED2 = SEED1 * 2
 
 class Table:
     def __init__(self, lables: []):
@@ -28,9 +29,9 @@ class Table:
             self.rows += 1
             while line:
                 infos = line.split('|')
-                index = mmh3.hash(infos[positions[0]], 101, signed=False) % SIZE
-                sign = mmh3.hash(infos[positions[0]], 102, signed=True) & 1
-                if sign == 0: sign = -1
+                index = mmh3.hash(infos[positions[0]], SEED1, signed=False) % SIZE
+                sign = mmh3.hash(infos[positions[0]], SEED2, signed=True) & 1
+                if sign == 0 : sign = -1
                 self.data[0][index] += weight * np.int32(sign)
                 line = file.readline()
                 self.rows += 1
@@ -39,9 +40,9 @@ class Table:
             self.rows += 1
             while line:
                 infos = line.split('|')
-                index = tuple([mmh3.hash(infos[i], 101, signed=False) % SIZE for i in positions])
-                signs = [mmh3.hash(infos[i], 102, signed=True) & 1 for i in positions]
-                sign = np.prod([-1 if i <= 0 else 1 for i in signs])
+                index = tuple([mmh3.hash(infos[i], SEED1, signed=False) % SIZE for i in positions])
+                signs = [mmh3.hash(infos[i], SEED2, signed=True) & 1 for i in positions]
+                sign = np.prod([-1 if i == 0 else 1 for i in signs])
                 self.data[index] += weight * np.int32(sign)
                 line = file.readline()
                 self.rows += 1
@@ -67,8 +68,8 @@ class Table:
             for j in range(TOP, len(hplist), 1):
                 (freq, tup) = hplist[j]
                 for i in range(self.dim):
-                    index = mmh3.hash(tup[i], 101, signed=False) % SIZE
-                    sign = mmh3.hash(tup[i], 102, signed=True) & 1
+                    index = mmh3.hash(tup[i], SEED1, signed=False) % SIZE
+                    sign = mmh3.hash(tup[i], SEED2, signed=True) & 1
                     if sign == 0: sign = -1
                     self.data[i, index] += sign * (-freq)
         file.close()
@@ -81,14 +82,14 @@ def join(t1, t2):
     if t1.dim == 1 and t2.dim == 2:
         if not t1.bigdata == {}:
             for tup, freq in t1.bigdata.items():
-                index = mmh3.hash(tup[0], 101, signed=False) % SIZE
-                sign = mmh3.hash(tup[0], 102, signed=True) & 1
+                index = mmh3.hash(tup[0], SEED1, signed=False) % SIZE
+                sign = mmh3.hash(tup[0], SEED2, signed=True) & 1
                 if sign == 0: sign = -1
                 t1.data[index] += sign * freq
         if not t2.bigdata == {}:
             for tup, freq in t2.bigdata.items():
-                index = [mmh3.hash(tup[0], 101, signed=False) % SIZE, mmh3.hash(tup[1], 101, signed=False) % SIZE]
-                signs = [mmh3.hash(tup[0], 102, signed=True) & 1, mmh3.hash(tup[1], 102, signed=True) & 1]
+                index = [mmh3.hash(tup[0], SEED1, signed=False) % SIZE, mmh3.hash(tup[1], SEED1, signed=False) % SIZE]
+                signs = [mmh3.hash(tup[0], SEED2, signed=True) & 1, mmh3.hash(tup[1], SEED2, signed=True) & 1]
                 sign = np.prod([-1 if i <= 0 else 1 for i in signs])
                 t2.data[tuple(index)] += sign * freq
         t1.data = t1.data.reshape((SIZE,))
@@ -104,14 +105,14 @@ def join(t1, t2):
     elif t1.dim == 2 and t2.dim == 2:
         if not t1.bigdata == {}:
             for tup, freq in t1.bigdata.items():
-                index = [mmh3.hash(tup[0], 101, signed=False) % SIZE, mmh3.hash(tup[1], 101, signed=False) % SIZE]
-                signs = [mmh3.hash(tup[0], 102, signed=True) & 1, mmh3.hash(tup[1], 102, signed=True) & 1]
+                index = [mmh3.hash(tup[0], SEED1, signed=False) % SIZE, mmh3.hash(tup[1], SEED1, signed=False) % SIZE]
+                signs = [mmh3.hash(tup[0], SEED2, signed=True) & 1, mmh3.hash(tup[1], SEED2, signed=True) & 1]
                 sign = np.prod([-1 if i <= 0 else 1 for i in signs])
                 t1.data[tuple(index)] += sign * freq
         if not t2.bigdata == {}:
             for tup, freq in t2.bigdata.items():
-                index = [mmh3.hash(tup[0], 101, signed=False), mmh3.hash(tup[1], 101, signed=False)]
-                signs = [mmh3.hash(tup[0], 102, signed=True) & 1, mmh3.hash(tup[1], 102, signed=True) & 1]
+                index = [mmh3.hash(tup[0], SEED1, signed=False), mmh3.hash(tup[1], SEED1, signed=False)]
+                signs = [mmh3.hash(tup[0], SEED2, signed=True) & 1, mmh3.hash(tup[1], SEED2, signed=True) & 1]
                 sign = np.prod([-1 if i <= 0 else 1 for i in signs])
                 t2.data[tuple(index)] += sign * freq
         # join2
@@ -142,8 +143,8 @@ def join(t1, t2):
     elif t1.dim == 2:
         if not t1.bigdata == {}:
             for tup, freq in t1.bigdata.items():
-                index = [mmh3.hash(tup[0], 101, signed=False) % SIZE, mmh3.hash(tup[1], 101, signed=False) % SIZE]
-                signs = [mmh3.hash(tup[0], 102, signed=True) & 1, mmh3.hash(tup[1], 102, signed=True) & 1]
+                index = [mmh3.hash(tup[0], SEED1, signed=False) % SIZE, mmh3.hash(tup[1], SEED1, signed=False) % SIZE]
+                signs = [mmh3.hash(tup[0], SEED2, signed=True) & 1, mmh3.hash(tup[1], SEED2, signed=True) & 1]
                 sign = np.prod([-1 if i <= 0 else 1 for i in signs])
                 t1.data[tuple(index)] += sign * freq
         # join2 分为产生2和产生非2
@@ -163,9 +164,9 @@ def join(t1, t2):
             if new_table.dim == 2:
                 new_table.data = np.einsum('i,j->ij', new_table.data[0], new_table.data[1]) / new_table.rows
                 for tup, freq in t2.bigdata.items():
-                    index = [mmh3.hash(tup[id1], 101, signed=False) % SIZE,
-                             mmh3.hash(tup[id2], 101, signed=False) % SIZE]
-                    signs = [mmh3.hash(tup[id1], 102, signed=True) & 1, mmh3.hash(tup[id2], 102, signed=True) & 1]
+                    index = [mmh3.hash(tup[id1], SEED1, signed=False) % SIZE,
+                             mmh3.hash(tup[id2], SEED1, signed=False) % SIZE]
+                    signs = [mmh3.hash(tup[id1], SEED2, signed=True) & 1, mmh3.hash(tup[id2], SEED2, signed=True) & 1]
                     sign = np.prod([-1 if i <= 0 else 1 for i in signs])
                     new_table.data[tuple(index)] += sign * freq * t1.data[tuple(index)]
                     new_table.rows += sign * freq * t1.data[tuple(index)]
@@ -173,9 +174,9 @@ def join(t1, t2):
             else:
                 tbigdata = {}
                 for tup, freq in t2.bigdata.items():
-                    index = [mmh3.hash(tup[id1], 101, signed=False) % SIZE,
-                             mmh3.hash(tup[id2], 101, signed=False) % SIZE]
-                    signs = [mmh3.hash(tup[id1], 102, signed=True) & 1, mmh3.hash(tup[id2], 102, signed=True) & 1]
+                    index = [mmh3.hash(tup[id1], SEED1, signed=False) % SIZE,
+                             mmh3.hash(tup[id2], SEED1, signed=False) % SIZE]
+                    signs = [mmh3.hash(tup[id1], SEED2, signed=True) & 1, mmh3.hash(tup[id2], SEED2, signed=True) & 1]
                     sign = np.prod([-1 if i <= 0 else 1 for i in signs])
                     tup = list(tup)
                     tup.pop(id1)
@@ -192,8 +193,8 @@ def join(t1, t2):
             for tup, freq in t2.bigdata.items():
                 for i in range(t2.dim):
                     x = tup[i]
-                    index = mmh3.hash(x, 101, signed=False) % SIZE
-                    sign = mmh3.hash(x, 102, signed=True) & 1
+                    index = mmh3.hash(x, SEED1, signed=False) % SIZE
+                    sign = mmh3.hash(x, SEED2, signed=True) & 1
                     if sign == 0: sign = -1
                     t2.data[i][index] += sign * freq
             id1 = 0
@@ -216,8 +217,8 @@ def join(t1, t2):
             new_table.rows = temp_cardinality
     # m*n 分为生成2和不生成2
     else:
-        if t1.dim == 1: t1.data = np.reshape(t1.data,(SIZE,))
-        if t2.dim == 1: t2.data = np.reshape(t2.data, (SIZE,))
+        t1.data = np.reshape(t1.data, (t1.dim, SIZE))
+        t2.data = np.reshape(t2.data, (t2.dim, SIZE))
         temp_cardinality = 1  # 联通基数
         inter_lables1 = {}  # 交集标签
         inter_lables2 = {}  # 交集标签
@@ -233,8 +234,9 @@ def join(t1, t2):
             if x not in t1.lables: left_lables2[x] = t2.lables.index(x)
         # 获得三个集合
         for x in inter_lables1.keys():
-            temp_cardinality *= np.dot((t1.data[inter_lables1[x]]),
-                                       (t2.data[inter_lables2[x]]))
+            a = t1.data[inter_lables1[x]]
+            b = t2.data[inter_lables2[x]]
+            temp_cardinality *= np.dot(a,b)
         temp_cardinality /= np.power(t1.rows, (len(inter_lables1) - 1))
         temp_cardinality /= np.power(t2.rows, (len(inter_lables1) - 1))
         # 已经确定，这种操作等价于矩阵相乘
@@ -266,8 +268,8 @@ def join(t1, t2):
         if new_table.dim == 2:
             new_table.data = np.einsum('i,j->ij', new_table.data[0], new_table.data[1]) / new_table.rows
             for tup, freq in new_table.bigdata.items():
-                index = [mmh3.hash(tup[0], 101, signed=False) % SIZE, mmh3.hash(tup[1], 101, signed=False) % SIZE]
-                signs = [mmh3.hash(tup[0], 102, signed=True) & 1, mmh3.hash(tup[1], 102, signed=True) & 1]
+                index = [mmh3.hash(tup[0], SEED1, signed=False) % SIZE, mmh3.hash(tup[1], SEED1, signed=False) % SIZE]
+                signs = [mmh3.hash(tup[0], SEED2, signed=True) & 1, mmh3.hash(tup[1], SEED2, signed=True) & 1]
                 sign = np.prod([-1 if i <= 0 else 1 for i in signs])
                 new_table.data[tuple(index)] += sign * freq
                 new_table.rows += sign * freq
@@ -283,54 +285,61 @@ partsupp_f = './partsupp.tbl'
 region_f = './region.tbl'
 supplier_f = './supplier.tbl'
 
-part_l = ['PARTKEY']
-part_p = [0]
+# part_l = ['PARTKEY']
+# part_p = [0]
+# part_t = Table(part_l)
+# part_t.generate(part_f, part_p)
+
+# partsupp_l = ['PARTKEY', 'SUPPKEY']
+# partsupp_p = [0, 1]
+# partsupp_t = Table(partsupp_l)
+# partsupp_t.generate(partsupp_f, partsupp_p)
+
+# lineitem_l = ['ORDERKEY', 'SUPPKEY']
+# lineitem_p = [0, 2]
+# lineitem_t = Table(lineitem_l)
+# lineitem_t.generate(lineitem_f, lineitem_p)
+
+# orders_l = ['ORDERKEY', 'CUSTKEY']
+# orders_p = [0, 1]
+# orders_t = Table(orders_l)
+# orders_t.generate(orders_f, orders_p)
+
+# customer_l = ['CUSTKEY', 'NATIONKEY']
+# customer_p = [0, 3]
+# customer_t = Table(customer_l)
+# customer_t.generate(customer_f, customer_p)
+
+# supplier_l = ['NATIONKEY']
+# supplier_p = [3]
+# supplier_t = Table(supplier_l)
+# supplier_t.generate(supplier_f, supplier_p)
+
+# join_queue = [#part_t, partsupp_t, lineitem_t, orders_t, customer_t, supplier_t]
+
 partsupp_l = ['PARTKEY', 'SUPPKEY']
 partsupp_p = [0, 1]
-lineitem_l = ['ORDERKEY', 'SUPPKEY']
-lineitem_p = [0, 2]
-orders_l = ['ORDERKEY', 'CUSTKEY']
-orders_p = [0, 1]
-customer_l = ['CUSTKEY', 'NATIONKEY']
-customer_p = [0, 3]
-supplier_l = ['NATIONKEY']
-supplier_p = [3]
+lineitem_l = ['ORDERKEY','PARTKEY','SUPPKEY']
+lineitem_p = [0,1,2]
+orders_l = ['ORDERKEY']
+orders_p = [0]
 
-part_t = Table(part_l)
-part_t.generate(part_f, part_p)
-partsupp_t = Table(partsupp_l)
-partsupp_t.generate(partsupp_f, partsupp_p)
-lineitem_t = Table(lineitem_l)
-lineitem_t.generate(lineitem_f, lineitem_p)
-orders_t = Table(orders_l)
-orders_t.generate(orders_f, orders_p)
-customer_t = Table(customer_l)
-customer_t.generate(customer_f, customer_p)
-supplier_t = Table(supplier_l)
-supplier_t.generate(supplier_f, supplier_p)
-join_queue = [part_t, partsupp_t, lineitem_t, orders_t, join(customer_t, supplier_t)]
-
-print("Table Start Join !")
-ans = join_queue[0]
-for i in range(1, len(join_queue)):
-    ans = join(join_queue[i], ans)
-print("Table answer:" + str(int(ans.data)))
-# print("Table Start Join !")
-# ans_t = join(join(pt,lt),ot)
-# print("Table answer:" + str(int(ans_t.data)))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+for I in range(5):
+    SEED1 = 101+I
+    SEED2 = SEED1*2
+    partsupp_t = Table(partsupp_l)
+    partsupp_t.generate(partsupp_f, partsupp_p)
+    lineitem_t = Table(lineitem_l)
+    lineitem_t.generate(lineitem_f, lineitem_p)
+    orders_t = Table(orders_l)
+    orders_t.generate(orders_f, orders_p)
+    join_queue = [#part_t,
+              partsupp_t, lineitem_t, orders_t
+              #, customer_t, supplier_t
+              ]
+    print("Table Start Join !")
+    print("Seed is " + str(SEED1))
+    ans = join_queue[0]
+    for i in range(1, len(join_queue)):
+        ans = join(join_queue[i], ans)
+    print("Table answer:" + str(int(ans.data)))

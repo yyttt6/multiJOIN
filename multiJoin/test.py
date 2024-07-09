@@ -1,8 +1,7 @@
 import numpy as np
 
-test = {}
-for a,b in test:
-    print(a,b)
+a = np.array([0,0,0])
+print([-1 if i <= 0 else 1 for i in a])
 
 # b = np.random.rand(3, 3, 3)
 # b /= np.sum(b)
