@@ -285,58 +285,55 @@ partsupp_f = './partsupp.tbl'
 region_f = './region.tbl'
 supplier_f = './supplier.tbl'
 
-# part_l = ['PARTKEY']
-# part_p = [0]
+part_l = ['PARTKEY']
+part_p = [0]
 # part_t = Table(part_l)
 # part_t.generate(part_f, part_p)
 
-# partsupp_l = ['PARTKEY', 'SUPPKEY']
-# partsupp_p = [0, 1]
+partsupp_l = ['PARTKEY', 'SUPPKEY']
+partsupp_p = [0, 1]
 # partsupp_t = Table(partsupp_l)
 # partsupp_t.generate(partsupp_f, partsupp_p)
 
-# lineitem_l = ['ORDERKEY', 'SUPPKEY']
-# lineitem_p = [0, 2]
+lineitem_l = ['ORDERKEY', 'SUPPKEY']
+lineitem_p = [0, 2]
 # lineitem_t = Table(lineitem_l)
 # lineitem_t.generate(lineitem_f, lineitem_p)
 
-# orders_l = ['ORDERKEY', 'CUSTKEY']
-# orders_p = [0, 1]
+orders_l = ['ORDERKEY', 'CUSTKEY']
+orders_p = [0, 1]
 # orders_t = Table(orders_l)
 # orders_t.generate(orders_f, orders_p)
 
-# customer_l = ['CUSTKEY', 'NATIONKEY']
-# customer_p = [0, 3]
+customer_l = ['CUSTKEY', 'NATIONKEY']
+customer_p = [0, 3]
 # customer_t = Table(customer_l)
 # customer_t.generate(customer_f, customer_p)
 
-# supplier_l = ['NATIONKEY']
-# supplier_p = [3]
+supplier_l = ['NATIONKEY']
+supplier_p = [3]
 # supplier_t = Table(supplier_l)
 # supplier_t.generate(supplier_f, supplier_p)
 
 # join_queue = [#part_t, partsupp_t, lineitem_t, orders_t, customer_t, supplier_t]
 
-partsupp_l = ['PARTKEY', 'SUPPKEY']
-partsupp_p = [0, 1]
-lineitem_l = ['ORDERKEY','PARTKEY','SUPPKEY']
-lineitem_p = [0,1,2]
-orders_l = ['ORDERKEY']
-orders_p = [0]
 
 for I in range(5):
     SEED1 = 101+I
     SEED2 = SEED1*2
+    part_t = Table(part_l)
+    part_t.generate(part_f, part_p)
     partsupp_t = Table(partsupp_l)
     partsupp_t.generate(partsupp_f, partsupp_p)
     lineitem_t = Table(lineitem_l)
     lineitem_t.generate(lineitem_f, lineitem_p)
     orders_t = Table(orders_l)
     orders_t.generate(orders_f, orders_p)
-    join_queue = [#part_t,
-              partsupp_t, lineitem_t, orders_t
-              #, customer_t, supplier_t
-              ]
+    customer_t = Table(customer_l)
+    customer_t.generate(customer_f, customer_p)
+    supplier_t = Table(supplier_l)
+    supplier_t.generate(supplier_f, supplier_p)
+    join_queue = [part_t, partsupp_t, lineitem_t, orders_t, customer_t, supplier_t]
     print("Table Start Join !")
     print("Seed is " + str(SEED1))
     ans = join_queue[0]
